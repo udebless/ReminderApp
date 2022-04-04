@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 import 'package:reminderapp/model/reminder_model.dart';
@@ -41,24 +43,23 @@ class ReminderBloc extends Bloc<ReminderEvent, ReminderState> {
 
       if (event is CreateReminder) {
         var reminders = state.reminders;
+        String? url;
+        if (state.file != null) {
+          url = await ReminderServices().uploadImage(state.file!);
+           print( ' hello' );
+        }
+       
         var reminder = await ReminderServices().createReminder(
-            title: event.title,
-            description: event.description,
-            imageUrl: event.imageUrl);
-        reminders.add(reminder);
-
+            title: event.title, description: event.description, imageUrl: url);
+        reminders.insert(0,reminder);
+      //  print(url);
         emit(state.copyWith(reminders: reminders));
       }
 
-      if (event is UploadImage) {
-        await ReminderServices().uploadImage();
-
-        emit(state.copyWith(isUpload: true));
-      }
       if (event is SelectImage) {
-        await ReminderServices().displayImage();
+        var file = await ReminderServices().displayImage();
 
-        emit(state.copyWith(isSelect: true));
+        emit(state.copyWith(file: file));
       }
     });
   }
